@@ -35,7 +35,7 @@
 
                 </br></br>
                 
-                    <button class="btn btn-primary" id="botao">
+                    <button class="btn btn-primary is-create" id="botao" data-id="">
                     Enviar
                     <i class="fa fa-check" aria-hidden="true"></i>
                 </button>
@@ -44,7 +44,7 @@
         <hr>
         <h1 style="margin-top: 60px;">Informações cadastradas</h1>
         <div class="row">
-            <div class="col-8">
+            <div class="col-12">
                 <ul class="list-group" id="lista"></ul>
                 
             </div>
@@ -68,6 +68,7 @@
             const priori = document.querySelector('#priori')
 
             botao.addEventListener('click', create)
+            botao.addEventListener('click', update)
 
             lista.addEventListener('click', del)
 
@@ -110,6 +111,8 @@
         }
         function create(){
 
+            if (!botao.classList.contains('is-create')) return
+
             const name = nome.value
             const description = desc.value
             const start_date = datai.value
@@ -132,34 +135,54 @@
         function edit(element){
             if (element.target.classList.contains('update')){
 
-                const input = document.createElement('input')
-
-                input.type = 'text'
-                input.setAttribute('value', '')
+                
 
                 const pai = element.target.parentElement
                 const id = element.target.dataset.id
                 
-                pai.innerHTML = ''
-                pai.appendChild(input)
-                
-                
-                input.addEventListener('keydown', update.bind(pai, id, input))
-                input.focus()
+                // pai.innerHTML = ''
+                // pai.appendChild(input)
+                axios.get(`/show/${id}`)
+                .then((response) => {
+                    console.log(response)
+
+                    nome.value = response.data.name
+                    desc.value = response.data.description
+                    datai.value = response.data.start_date
+                    dataf.value = response.data.end_date
+                    priori.value = response.data.priority
+
+                    botao.classList.remove('is-create')
+                    botao.classList.add('is-update')
+                    botao.dataset.id = id
+                    
+                })
+                .catch((error) =>{
+                    console.log(error)
+                })
+
                 
 
                 
             }
         }
-        function update(id, input){
-            const x = event.key
-            if ( x == null || x != 'Enter') return
+        function update(){
+            if (!botao.classList.contains('is-update')) return
 
-            axios.put(`/update/${id}`, { name: input.value, description: input.value,description: input.value, start_date: input.value,
-                end_date: input.value,priority: input.value })
+            const id = botao.dataset.id
+            console.log(id)
+            const name = nome.value
+            const description = desc.value
+            const start_date = datai.value
+            const end_date = dataf.value
+            const priority = priori.value
+
+            axios.put(`/update/${id}`, {name, description,start_date,end_date,priority})
                 .then((response)=> {
                     if (response.status = 200){
-                        this.innerHTML = templateLi(id,input.value, input.value , input.value , input.value , input.value, false)
+                       read()
+                       clear()
+                        // this.innerHTML = templateLi(id,input.value, input.value , input.value , input.value , input.value, false)
                     }
                 })
                 .catch((error)=> {
@@ -182,6 +205,15 @@
                     console.log(error)
                 })
             }
+        }
+        function clear(){
+            const input = document.getElementsByTagName('input')
+            console.log(input.length)
+            for (let i=0; i < input.length; i++){
+                    console.log(input[i].id)
+                    input[i].value = ""
+                }
+
         }
     </script>
 </body>
